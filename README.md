@@ -55,7 +55,7 @@ The insights on the website and in the report have been drawn from two key sourc
     path1 = "Path of the JSON files"
     agg_trans_list = os.listdir(path1)
 
-    # Give any column names that you want
+    #Give a name to columns
     columns1 = {'State': [], 'Year': [], 'Quarter': [], 'Transaction_type': [], 'Transaction_count': [],'Transaction_amount': []}
     
     
