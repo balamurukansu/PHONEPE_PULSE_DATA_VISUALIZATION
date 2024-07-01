@@ -62,35 +62,37 @@ The insights on the website and in the report have been drawn from two key sourc
 Looping through each and every folder and opening the json files appending only the required key and values and creating the dataframe.
 
 
-    for state in agg_trans_list:
-        cur_state = path1 + state + "/"
-        agg_year_list = os.listdir(cur_state)
-    
-        for year in agg_year_list:
-            cur_year = cur_state + year + "/"
-            agg_file_list = os.listdir(cur_year)
-
-            for file in agg_file_list:
-                cur_file = cur_year + file
-                data = open(cur_file, 'r')
-                A = json.load(data)
-
-                for i in A['data']['transactionData']:
-                    name = i['name']
-                    count = i['paymentInstruments'][0]['count']
-                    amount = i['paymentInstruments'][0]['amount']
-                    columns1['Transaction_type'].append(name)
-                    columns1['Transaction_count'].append(count)
-                    columns1['Transaction_amount'].append(amount)
-                    columns1['State'].append(state)
-                    columns1['Year'].append(year)
-                    columns1['Quarter'].append(int(file.strip('.json')))
+col_au = {'State':[],'Year':[],'Quarter':[],'brand':[],'count':[],'percentage':[]}
+for i in Agg_user_list:
+    p_i=path2 + i + '/'   
+    agg_yr=os.listdir(p_i)   
+    for j in agg_yr:
+        p_j=p_i + j + '/'   
+        agg_yr=os.listdir(p_j)
+        for k in agg_yr:
+            p_k = p_j + k          
+            data = open(p_k,'r')
+            D=json.load(data)
+            # print(D)
+            try:
+                for x in D['data']['usersByDevice']:
+                    # print(x)
+                    brand = x['brand']
+                    count = x['count']
+                    percentage = x['percentage']
                 
-    df = pd.DataFrame(columns1)
-   
- ##### Converting the dataframe into csv file
-    df.to_csv('filename.csv',index=False)
+                    col_au['State'].append(i)
+                    col_au['Year'].append(j)
+                    col_au['Quarter'].append(k.strip('.json'))
+                    col_au['brand'].append(brand)
+                    col_au['count'].append(count)
+                    col_au['percentage'].append(percentage)
+            except:
+                pass
 
+
+Aggr_user = pd.DataFrame(col_au)   
+             
  ### Step 4:
  
  **Database insertion:**
@@ -101,23 +103,27 @@ Looping through each and every folder and opening the json files appending only 
    
         mydb = sql.connect(host="localhost",
                    user="username",
-                   password="password",
-                   database= "phonepe_pulse"
+                   password="password",                   
                   )
         mycursor = mydb.cursor(buffered=True)
         
    **Creating tables**
    
-       mycursor.execute("create table 'Table name' (col1 varchar(100), col2 int, col3 int, col4 varchar(100), col5 int, col6 double)")
+    create_Aggr_trans='''create table if not exists Aggr_trans (slno bigint NOT NULL AUTO_INCREMENT primary key,State varchar(100),Year   
+    int,Quarter int,Transaction_Type varchar(100),Transaction_count int,Transaction_amount double)'''
+    cursor.execute(create_Aggr_trans)
+    conn.commit()
 
-        for i,row in df.iterrows():
+
+        for i,row in df.iterrows():        
+            #%S refers to string values 
+            for i,row in Aggr_trans.iterrows():
+            insert_Aggr_trans = "insert ignore into Aggr_trans (State,Year,Quarter,Transaction_Type,Transaction_count,Transaction_amount) values (%s,%s,%s,%s,%s,%s)"
+        cursor.execute(insert_Aggr_trans,tuple(row))
         
-            #here %S means string values 
-            sql = "INSERT INTO agg_trans VALUES (%s,%s,%s,%s,%s,%s)"
-            mycursor.execute(sql, tuple(row))
             
-            # the connection is not auto committed by default, so we must commit to save our changes
-            mydb.commit()
+           #data is not auto committed by default, so we must commit to save our changes
+           conn.commit()
     
  ### Step 5:
  
