@@ -22,9 +22,9 @@ import plotly.express as px
 
 #-------------------------------------------------- MySQL connection details
 conn = mysql.connector.connect(
-    host='199.79.63.133',
-    user='sgptrrzs_phonepe',    
-    password='G3EJxwK42zmYFuzrBQrhBQz' 
+    host='',
+    user='',    
+    password='' 
 )
 
 #Create cursor
